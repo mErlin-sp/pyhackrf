@@ -20,9 +20,11 @@ logger.setLevel(logging.DEBUG)
 #libhackrf = CDLL('/usr/local/lib/libhackrf.so')
 libhackrf = CDLL('libhackrf.so.0')
 
+
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
+
 
 HackRfVendorRequest = enum(
     HACKRF_VENDOR_REQUEST_SET_TRANSCEIVER_MODE=1,
@@ -82,25 +84,29 @@ _pthread_t = c_ulong
 
 p_hackrf_device = c_void_p
 
+
 class hackrf_transfer(Structure):
-        _fields_ = [("device", p_hackrf_device),
+    _fields_ = [("device", p_hackrf_device),
                 ("buffer", POINTER(c_byte)),
                 ("buffer_length", c_int),
                 ("valid_length", c_int),
                 ("rx_ctx", c_void_p),
-                ("tx_ctx", c_void_p) ]
+                ("tx_ctx", c_void_p)]
+
 
 class read_partid_serialno_t(Structure):
-        _fields_ = [("part_id", c_uint32*2),
-                ("serial_no", c_uint32*4) ]
+    _fields_ = [("part_id", c_uint32*2),
+                ("serial_no", c_uint32*4)]
+
 
 class hackrf_device_list_t(Structure):
-        _fields_ = [("serial_numbers", POINTER(c_char_p)),
+    _fields_ = [("serial_numbers", POINTER(c_char_p)),
                 ("usb_board_ids", c_void_p),
                 ("usb_device_index", POINTER(c_int)),
                 ("devicecount", c_int),
                 ("usb_devices", POINTER(c_void_p)),
-                ("usb_devicecount", c_int) ]
+                ("usb_devicecount", c_int)]
+
 
 #
 #_callback = CFUNCTYPE(c_int, POINTER(hackrf_transfer))
@@ -123,7 +129,7 @@ f = libhackrf.hackrf_open_by_serial
 f.restype = c_int
 f.argtypes = [POINTER(p_hackrf_device)]
 
-#extern ADDAPI int ADDCALL hackrf_device_list_open
+# extern ADDAPI int ADDCALL hackrf_device_list_open
 #   (hackrf_device_list_t *list, int idx, hackrf_device** device);
 f = libhackrf.hackrf_device_list_open
 f.restype = c_int
@@ -133,7 +139,6 @@ f.arg_types = [POINTER(hackrf_device_list_t), c_int, POINTER(p_hackrf_device)]
 # extern ADDAPI int ADDCALL hackrf_close(hackrf_device* device);
 libhackrf.hackrf_close.restype = c_int
 libhackrf.hackrf_close.argtypes = [p_hackrf_device]
-
 
 
 # extern ADDAPI int ADDCALL hackrf_set_sample_rate(hackrf_device*
@@ -164,7 +169,7 @@ libhackrf.hackrf_start_rx.argtypes = [p_hackrf_device, _callback, c_void_p]
 libhackrf.hackrf_stop_rx.restype = c_int
 libhackrf.hackrf_stop_rx.argtypes = [p_hackrf_device]
 
-#extern ADDAPI hackrf_device_list_t* ADDCALL hackrf_device_list();
+# extern ADDAPI hackrf_device_list_t* ADDCALL hackrf_device_list();
 f = libhackrf.hackrf_device_list
 f.restype = POINTER(hackrf_device_list_t)
 f.argtypes = []
@@ -174,9 +179,10 @@ def hackrf_device_list():
     return libhackrf.hackrf_device_list()
 
 
-
 # dictionary containing all hackrf_devices in use
 _hackrf_dict = dict()
+
+
 def get_dict():
     return _hackrf_dict
 
@@ -212,75 +218,74 @@ def read_samples_cb(hackrf_transfer):
 rs_callback = _callback(read_samples_cb)
 
 
-
-## extern ADDAPI int ADDCALL hackrf_start_tx(hackrf_device* device,
-## hackrf_sample_block_cb_fn callback, void* tx_ctx);
+# extern ADDAPI int ADDCALL hackrf_start_tx(hackrf_device* device,
+# hackrf_sample_block_cb_fn callback, void* tx_ctx);
 #libhackrf.hackrf_start_tx.restype = c_int
 #libhackrf.hackrf_start_tx.argtypes = [POINTER(hackrf_device), _callback, c_void_p]
-## extern ADDAPI int ADDCALL hackrf_stop_tx(hackrf_device* device);
+# extern ADDAPI int ADDCALL hackrf_stop_tx(hackrf_device* device);
 #libhackrf.hackrf_stop_tx.restype = c_int
 #libhackrf.hackrf_stop_tx.argtypes = [POINTER(hackrf_device)]
 # extern ADDAPI int ADDCALL hackrf_is_streaming(hackrf_device* device);
 libhackrf.hackrf_is_streaming.restype = c_int
 libhackrf.hackrf_is_streaming.argtypes = [p_hackrf_device]
-## extern ADDAPI int ADDCALL hackrf_max2837_read(hackrf_device* device,
-## uint8_t register_number, uint16_t* value);
+# extern ADDAPI int ADDCALL hackrf_max2837_read(hackrf_device* device,
+# uint8_t register_number, uint16_t* value);
 #libhackrf.hackrf_max2837_read.restype = c_int
-#libhackrf.hackrf_max2837_read.argtypes = [
+# libhackrf.hackrf_max2837_read.argtypes = [
 #    POINTER(hackrf_device), c_uint8, POINTER(c_uint16)]
-## extern ADDAPI int ADDCALL hackrf_max2837_write(hackrf_device* device,
-## uint8_t register_number, uint16_t value);
+# extern ADDAPI int ADDCALL hackrf_max2837_write(hackrf_device* device,
+# uint8_t register_number, uint16_t value);
 #libhackrf.hackrf_max2837_write.restype = c_int
 #libhackrf.hackrf_max2837_write.argtypes = [POINTER(hackrf_device), c_uint8, c_uint16]
-## extern ADDAPI int ADDCALL hackrf_si5351c_read(hackrf_device* device,
-## uint16_t register_number, uint16_t* value);
+# extern ADDAPI int ADDCALL hackrf_si5351c_read(hackrf_device* device,
+# uint16_t register_number, uint16_t* value);
 #libhackrf.hackrf_si5351c_read.restype = c_int
-#libhackrf.hackrf_si5351c_read.argtypes = [
+# libhackrf.hackrf_si5351c_read.argtypes = [
 #    POINTER(hackrf_device), c_uint16, POINTER(c_uint16)]
-## extern ADDAPI int ADDCALL hackrf_si5351c_write(hackrf_device* device,
-## uint16_t register_number, uint16_t value);
+# extern ADDAPI int ADDCALL hackrf_si5351c_write(hackrf_device* device,
+# uint16_t register_number, uint16_t value);
 #libhackrf.hackrf_si5351c_write.restype = c_int
 #libhackrf.hackrf_si5351c_write.argtypes = [POINTER(hackrf_device), c_uint16, c_uint16]
-## extern ADDAPI int ADDCALL
-## hackrf_set_baseband_filter_bandwidth(hackrf_device* device, const
-## uint32_t bandwidth_hz);
+# extern ADDAPI int ADDCALL
+# hackrf_set_baseband_filter_bandwidth(hackrf_device* device, const
+# uint32_t bandwidth_hz);
 #libhackrf.hackrf_set_baseband_filter_bandwidth.restype = c_int
-#libhackrf.hackrf_set_baseband_filter_bandwidth.argtypes = [
+# libhackrf.hackrf_set_baseband_filter_bandwidth.argtypes = [
 #    POINTER(hackrf_device), c_uint32]
-## extern ADDAPI int ADDCALL hackrf_rffc5071_read(hackrf_device* device,
-## uint8_t register_number, uint16_t* value);
+# extern ADDAPI int ADDCALL hackrf_rffc5071_read(hackrf_device* device,
+# uint8_t register_number, uint16_t* value);
 #libhackrf.hackrf_rffc5071_read.restype = c_int
-#libhackrf.hackrf_rffc5071_read.argtypes = [
+# libhackrf.hackrf_rffc5071_read.argtypes = [
 #    POINTER(hackrf_device), c_uint8, POINTER(c_uint16)]
-## extern ADDAPI int ADDCALL hackrf_rffc5071_write(hackrf_device*
-## device, uint8_t register_number, uint16_t value);
+# extern ADDAPI int ADDCALL hackrf_rffc5071_write(hackrf_device*
+# device, uint8_t register_number, uint16_t value);
 #libhackrf.hackrf_rffc5071_write.restype = c_int
 #libhackrf.hackrf_rffc5071_write.argtypes = [POINTER(hackrf_device), c_uint8, c_uint16]
-## extern ADDAPI int ADDCALL hackrf_spiflash_erase(hackrf_device*
-## device);
+# extern ADDAPI int ADDCALL hackrf_spiflash_erase(hackrf_device*
+# device);
 #libhackrf.hackrf_spiflash_erase.restype = c_int
 #libhackrf.hackrf_spiflash_erase.argtypes = [POINTER(hackrf_device)]
-## extern ADDAPI int ADDCALL hackrf_spiflash_write(hackrf_device*
-## device, const uint32_t address, const uint16_t length, unsigned char*
-## const data);
+# extern ADDAPI int ADDCALL hackrf_spiflash_write(hackrf_device*
+# device, const uint32_t address, const uint16_t length, unsigned char*
+# const data);
 #libhackrf.hackrf_spiflash_write.restype = c_int
-#libhackrf.hackrf_spiflash_write.argtypes = [
+# libhackrf.hackrf_spiflash_write.argtypes = [
 #    POINTER(hackrf_device), c_uint32, c_uint16, POINTER(c_ubyte)]
-## extern ADDAPI int ADDCALL hackrf_spiflash_read(hackrf_device* device,
-## const uint32_t address, const uint16_t length, unsigned char* data);
+# extern ADDAPI int ADDCALL hackrf_spiflash_read(hackrf_device* device,
+# const uint32_t address, const uint16_t length, unsigned char* data);
 #libhackrf.hackrf_spiflash_read.restype = c_int
-#libhackrf.hackrf_spiflash_read.argtypes = [
+# libhackrf.hackrf_spiflash_read.argtypes = [
 #    POINTER(hackrf_device), c_uint32, c_uint16, POINTER(c_ubyte)]
-## extern ADDAPI int ADDCALL hackrf_cpld_write(hackrf_device* device,
-##         unsigned char* const data, const unsigned int total_length);
+# extern ADDAPI int ADDCALL hackrf_cpld_write(hackrf_device* device,
+# unsigned char* const data, const unsigned int total_length);
 #libhackrf.hackrf_cpld_write.restype = c_int
 #libhackrf.hackrf_cpld_write.argtypes = [POINTER(hackrf_device), POINTER(c_ubyte), c_uint]
-## extern ADDAPI int ADDCALL hackrf_board_id_read(hackrf_device* device,
-## uint8_t* value);
+# extern ADDAPI int ADDCALL hackrf_board_id_read(hackrf_device* device,
+# uint8_t* value);
 #libhackrf.hackrf_board_id_read.restype = c_int
 #libhackrf.hackrf_board_id_read.argtypes = [POINTER(hackrf_device), POINTER(c_uint8)]
-## extern ADDAPI int ADDCALL hackrf_version_string_read(hackrf_device*
-## device, char* version, uint8_t length);
+# extern ADDAPI int ADDCALL hackrf_version_string_read(hackrf_device*
+# device, char* version, uint8_t length);
 #libhackrf.hackrf_version_string_read.restype = c_int
 #libhackrf.hackrf_version_string_read.argtypes = [POINTER(hackrf_device), POINTER(c_char), c_uint8]
 # extern ADDAPI int ADDCALL hackrf_set_freq(hackrf_device* device,
@@ -288,18 +293,18 @@ libhackrf.hackrf_is_streaming.argtypes = [p_hackrf_device]
 libhackrf.hackrf_set_freq.restype = c_int
 libhackrf.hackrf_set_freq.argtypes = [p_hackrf_device, c_uint64]
 #
-## extern ADDAPI int ADDCALL hackrf_set_freq_explicit(hackrf_device* device,
-##         const uint64_t if_freq_hz, const uint64_t lo_freq_hz,
-##         const enum rf_path_filter path);,
+# extern ADDAPI int ADDCALL hackrf_set_freq_explicit(hackrf_device* device,
+# const uint64_t if_freq_hz, const uint64_t lo_freq_hz,
+# const enum rf_path_filter path);,
 ## libhackrf.hackrf_set_freq_explicit.restype = c_int
-## libhackrf.hackrf_set_freq_explicit.argtypes = [c_uint64,
-## c_uint64, ]
+# libhackrf.hackrf_set_freq_explicit.argtypes = [c_uint64,
+# c_uint64, ]
 #
-## extern ADDAPI int ADDCALL
-## hackrf_set_sample_rate_manual(hackrf_device* device, const uint32_t
-## freq_hz, const uint32_t divider);
+# extern ADDAPI int ADDCALL
+# hackrf_set_sample_rate_manual(hackrf_device* device, const uint32_t
+# freq_hz, const uint32_t divider);
 #libhackrf.hackrf_set_sample_rate_manual.restype = c_int
-#libhackrf.hackrf_set_sample_rate_manual.argtypes = [
+# libhackrf.hackrf_set_sample_rate_manual.argtypes = [
 #    POINTER(hackrf_device), c_uint32, c_uint32]
 #
 # extern ADDAPI int ADDCALL
@@ -309,38 +314,38 @@ f = libhackrf.hackrf_board_partid_serialno_read
 f.restype = c_int
 f.argtypes = [p_hackrf_device, POINTER(read_partid_serialno_t)]
 
-## extern ADDAPI int ADDCALL hackrf_set_txvga_gain(hackrf_device*
-## device, uint32_t value);
+# extern ADDAPI int ADDCALL hackrf_set_txvga_gain(hackrf_device*
+# device, uint32_t value);
 #libhackrf.hackrf_set_txvga_gain.restype = c_int
 #libhackrf.hackrf_set_txvga_gain.argtypes = [POINTER(hackrf_device), c_uint32]
-## extern ADDAPI int ADDCALL hackrf_set_antenna_enable(hackrf_device*
-## device, const uint8_t value);
+# extern ADDAPI int ADDCALL hackrf_set_antenna_enable(hackrf_device*
+# device, const uint8_t value);
 #libhackrf.hackrf_set_antenna_enable.restype = c_int
 #libhackrf.hackrf_set_antenna_enable.argtypes = [POINTER(hackrf_device), c_uint8]
 #
-## extern ADDAPI const char* ADDCALL hackrf_error_name(enum hackrf_error errcode);
+# extern ADDAPI const char* ADDCALL hackrf_error_name(enum hackrf_error errcode);
 ## libhackrf.hackrf_error_name.restype = POINTER(c_char)
 ## libhackrf.hackrf_error_name.argtypes = []
 #
-## extern ADDAPI const char* ADDCALL hackrf_board_id_name(enum hackrf_board_id board_id);
+# extern ADDAPI const char* ADDCALL hackrf_board_id_name(enum hackrf_board_id board_id);
 ## libhackrf.hackrf_board_id_name.restype = POINTER(c_char)
 ## libhackrf.hackrf_board_id_name.argtypes = []
 #
-## extern ADDAPI const char* ADDCALL hackrf_filter_path_name(const enum rf_path_filter path);
+# extern ADDAPI const char* ADDCALL hackrf_filter_path_name(const enum rf_path_filter path);
 ## libhackrf.hackrf_filter_path_name.restype = POINTER(c_char)
 ## libhackrf.hackrf_filter_path_name.argtypes = []
 #
 
 
 class HackRF(object):
-    
+
     _center_freq = 100e6
     _sample_rate = 20e6
     device_opened = False
 
     def __init__(self, device_index=0):
         self.open(device_index)
-        
+
         # TODO: initialize defaults here
         self.disable_amp()
         self.set_lna_gain(16)
@@ -355,7 +360,8 @@ class HackRF(object):
         self.dev_p = p_hackrf_device(None)
 
         hdl = hackrf_device_list()
-        result = libhackrf.hackrf_device_list_open(hdl, device_index, pointer(self.dev_p))
+        result = libhackrf.hackrf_device_list_open(
+            hdl, device_index, pointer(self.dev_p))
         if result != 0:
             raise IOError('Error code %d when opening HackRF' % (result))
 
@@ -364,7 +370,7 @@ class HackRF(object):
         # But above, I have to pass in a pointer(self.dev_p)
         # They should both take the same thing
         #result = libhackrf.hackrf_open(self.dev_p)
-        #if result != 0:
+        # if result != 0:
         #    raise IOError('Error code %d when opening HackRF' % (result))
 
         # self.dev_p.value returns the integer value of the pointer
@@ -387,7 +393,7 @@ class HackRF(object):
 
     # sleep_time in seconds
     # I used to have just pass in the while loop
-    def read_samples(self,num_samples=131072,sleep_time=0.05):
+    def read_samples(self, num_samples=131072, sleep_time=0.05):
 
         num_bytes = 2*num_samples
         self.num_bytes = int(num_bytes)
@@ -414,14 +420,14 @@ class HackRF(object):
 
         return iq
 
-
     # setting the center frequency
+
     def set_freq(self, freq):
         freq = int(freq)
         result = libhackrf.hackrf_set_freq(self.dev_p, freq)
         if result != 0:
-            raise IOError('Error code %d when setting frequency to %d Hz'\
-                    % (result, freq))
+            raise IOError('Error code %d when setting frequency to %d Hz'
+                          % (result, freq))
 
         self._center_freq = freq
         return
@@ -431,8 +437,8 @@ class HackRF(object):
 
     center_freq = property(get_freq, set_freq)
 
-
     # sample rate
+
     def set_sample_rate(self, rate):
         result = libhackrf.hackrf_set_sample_rate(self.dev_p, rate)
         if result != 0:
@@ -473,7 +479,7 @@ class HackRF(object):
             # TODO: make this a better message
             raise IOError("error setting lna gain")
         self._lna_gain = gain
-        print("LNA gain set to",gain,"dB.")
+        print("LNA gain set to", gain, "dB.")
         return 0
 
     def get_lna_gain(self):
@@ -488,7 +494,7 @@ class HackRF(object):
             # TODO: make this a better message
             raise IOError("error setting vga gain")
         self._vga_gain = gain
-        print("VGA gain set to",gain,"dB.")
+        print("VGA gain set to", gain, "dB.")
         return 0
 
     def get_vga_gain(self):
@@ -506,8 +512,7 @@ class HackRF(object):
     def stop_rx(self):
         result = libhackrf.hackrf_stop_rx(self.dev_p)
         if result != 0:
-            raise IOError("stop_rx failure");
-
+            raise IOError("stop_rx failure")
 
 
 # returns serial number as a string
@@ -519,10 +524,9 @@ def get_serial_no(dev_p):
     if result != 0:
         raise IOError("Error %d while getting serial number" % (result))
 
-
     # convert the serial number to a string
     sn_str = ""
-    for i in xrange(0,4): 
+    for i in range(0, 4):
         sni = sn.serial_no[i]
         if sni == 0:
             sn_str += "00000000"
@@ -532,6 +536,8 @@ def get_serial_no(dev_p):
     return sn_str
 
 # converts byte array to iq values
+
+
 def bytes2iq(data):
     values = np.array(data).astype(np.int8)
     iq = values.astype(np.float64).view(np.complex128)
@@ -539,8 +545,6 @@ def bytes2iq(data):
     iq -= (1 + 1j)
 
     return iq
-
-
 
 
 # really, user shouldn't have to call this function at all
